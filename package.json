@@ -1,0 +1,39 @@
+{
+  "name": "default-module",
+  "version": "0.0.1",
+  "description": "boilerplate module compiled with babel",
+  "main": "dist/index.js",
+  "scripts": {
+    "pretest": "npm run lint || true",
+    "test": "ava -v",
+    "clean": "rm -rf dist && mkdir dist",
+    "lint": "eslint src",
+    "lint:fix": "eslint src --fix",
+    "build": "npm run clean && npm run build:module",
+    "build:module": "babel -d ./dist ./src -s",
+    "postinstall": "npm run build"
+  },
+  "author": "David Alejandro Londoño",
+  "license": "MIT",
+  "dependencies": {
+    "babel-core": "^6.8.0",
+    "babel-plugin-transform-async-to-generator": "^6.8.0",
+    "babel-preset-es2015-node5": "^1.2.0",
+    "babel-preset-stage-3": "^6.5.0",
+    "rimraf": "^2.5.4"
+  },
+  "devDependencies": {
+    "ava": "^0.14.0",
+    "babel-eslint": "^6.0.4",
+    "eslint": "^2.10.2",
+    "eslint-config-airbnb-base": "^3.0.1",
+    "eslint-plugin-import": "^1.8.0",
+    "nodemon": "^1.9.2"
+  },
+  "ava": {
+    "babel": "inherit",
+    "require": [
+      "babel-register"
+    ]
+  }
+}

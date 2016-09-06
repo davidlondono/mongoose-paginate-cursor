@@ -1,0 +1,13 @@
+[ignore]
+*.json
+./built/.*
+<PROJECT_ROOT>/\(dist\|test\)/
+*\.ignore\.js
+
+[include]
+<PROJECT_ROOT>/src/
+
+[libs]
+./flow-libs/
+
+[options]
