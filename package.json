@@ -1,41 +1,54 @@
 {
   "name": "babel-boilerplate-module",
   "version": "0.0.1",
-  "description": "boilerplate module compiled with babel",
+  "description": "Model for all authentication of user",
   "main": "dist/index.js",
-  "repository": "https://github.com/davidlondono/babel-boilerplate-module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/davidlondono/babel-boilerplate-module"
+  },
   "scripts": {
     "pretest": "npm run lint || true",
-    "test": "ava -v",
-    "clean": "rm -rf dist && mkdir dist",
-    "lint": "eslint src",
+    "test": "NODE_ENV=test mocha -u bdd -R spec --require babel-core/register",
+    "clean": "rimraf dist && mkdir dist",
+    "lint": "eslint src test",
     "lint:fix": "eslint src --fix",
     "build": "npm run clean && npm run build:module",
     "build:module": "babel -d ./dist ./src -s",
-    "postinstall": "npm run build"
+    "postinstall": "npm run build",
+    "watch:babel": "babel ./src --watch --out-dir ./dist",
+    "commit": "git add . && git-cz"
   },
   "author": "David Alejandro Londoño",
   "license": "MIT",
   "dependencies": {
-    "babel-cli": "^6.14.0",
-    "babel-core": "^6.8.0",
-    "babel-plugin-transform-async-to-generator": "^6.8.0",
-    "babel-preset-es2015-node5": "^1.2.0",
-    "babel-preset-stage-3": "^6.5.0",
-    "rimraf": "^2.5.4"
+    "babel-cli": "6.14.0",
+    "babel-core": "6.8.0",
+    "babel-plugin-transform-async-to-generator": "6.8.0",
+    "babel-preset-es2015-node5": "1.2.0",
+    "babel-preset-stage-3": "6.5.0",
+    "basic-auth": "1.0.4",
+    "bcrypt": "0.8.7",
+    "koa-jwt": "1.2.0",
+    "mongoose": "4.6.0",
+    "rabbot": "1.0.6",
+    "rabbus": "0.8.1",
+    "rimraf": "2.5.4"
   },
   "devDependencies": {
-    "ava": "^0.14.0",
-    "babel-eslint": "^6.0.4",
-    "eslint": "^2.10.2",
-    "eslint-config-airbnb-base": "^3.0.1",
-    "eslint-plugin-import": "^1.8.0",
-    "nodemon": "^1.9.2"
+    "arrow-mocha": "^1.0.1",
+    "babel-eslint": "6.0.4",
+    "chai": "3.5.0",
+    "chai-as-promised": "5.3.0",
+    "commitizen": "2.8.6",
+    "cz-conventional-changelog": "1.2.0",
+    "eslint": "2.10.2",
+    "eslint-config-airbnb-base": "3.0.1",
+    "eslint-plugin-import": "1.8.0",
+    "eslint-plugin-mocha": "4.5.1",
+    "mocha": "3.0.2"
   },
-  "ava": {
-    "babel": "inherit",
-    "require": [
-      "babel-register"
-    ]
+  "czConfig": {
+    "path": "node_modules/cz-conventional-changelog"
   }
 }
