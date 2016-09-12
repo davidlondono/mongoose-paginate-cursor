@@ -1,13 +1,22 @@
-import test from 'ava';
+import chai, {expect} from 'chai';
+import chaiAsPromised from 'chai-as-promised';
+import { it, before, after, beforeEach, afterEach } from 'arrow-mocha/es5'
 import module, {boilerplate} from '../dist';
 
-test('should return default', t => {
-  const moduleResponse = module();
+chai.use(chaiAsPromised);
 
-  t.is(moduleResponse, "default");
-});
-test('should return boilerplate', t => {
-  const boilerplateResponse = boilerplate();
+describe('boilerplate test',function () {
+	
+  it('should return default', () => {
+    const moduleResponse = module();
 
-  t.is(boilerplateResponse, "boilerplate");
-});
+    expect(moduleResponse).to.equal('default');
+  });
+
+  it('should return boilerplate', () => {
+    const boilerplateResponse = boilerplate();
+
+    expect(boilerplateResponse).to.equal('boilerplate');
+  });
+
+})
