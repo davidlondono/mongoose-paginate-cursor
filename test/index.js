@@ -1,12 +1,13 @@
-import chai, {expect} from 'chai';
+import chai, { expect } from 'chai';
+import dirtyChai from 'dirty-chai';
 import chaiAsPromised from 'chai-as-promised';
-import { it, before, after, beforeEach, afterEach } from 'arrow-mocha/es5'
-import module, {boilerplate} from '../dist';
+import { it, before, after, beforeEach, afterEach } from 'arrow-mocha/es5';
+import module, { boilerplate } from '../lib';
 
 chai.use(chaiAsPromised);
+chai.use(dirtyChai);
 
-describe('boilerplate test',function () {
-	
+describe('boilerplate test', () => {
   it('should return default', () => {
     const moduleResponse = module();
 
@@ -18,5 +19,4 @@ describe('boilerplate test',function () {
 
     expect(boilerplateResponse).to.equal('boilerplate');
   });
-
-})
+});

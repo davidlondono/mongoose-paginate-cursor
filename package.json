@@ -2,7 +2,7 @@
   "name": "babel-boilerplate-module",
   "version": "0.0.1",
   "description": "Model for all authentication of user",
-  "main": "dist/index.js",
+  "main": "lib/index.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/davidlondono/babel-boilerplate-module"
@@ -10,13 +10,13 @@
   "scripts": {
     "pretest": "npm run lint || true",
     "test": "NODE_ENV=test mocha -u bdd -R spec --require babel-core/register",
-    "clean": "rimraf dist && mkdir dist",
+    "clean": "rimraf lib && mkdir lib",
     "lint": "eslint src test",
     "lint:fix": "eslint src --fix",
     "build": "npm run clean && npm run build:module",
-    "build:module": "babel -d ./dist ./src -s",
+    "build:module": "babel -d ./lib ./src -s",
     "postinstall": "npm run build",
-    "watch:babel": "babel ./src --watch --out-dir ./dist",
+    "watch:babel": "babel ./src --watch --out-dir ./lib",
     "commit": "git add . && git-cz"
   },
   "author": "David Alejandro Londoño",
@@ -42,6 +42,7 @@
     "chai-as-promised": "5.3.0",
     "commitizen": "2.8.6",
     "cz-conventional-changelog": "1.2.0",
+    "dirty-chai": "1.2.2",
     "eslint": "2.10.2",
     "eslint-config-airbnb-base": "3.0.1",
     "eslint-plugin-import": "1.8.0",

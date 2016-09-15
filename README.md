@@ -11,12 +11,12 @@ This boilerplate is for people who want write code using all ES6 and ES7 feature
 
 # Commands
 - `npm run pretest` - Hook for test. Run the lint before the test run 
-- `npm run clean` - Remove `dist/` directory
+- `npm run clean` - Remove `./lib` directory
 - `npm test` - Run tests. Tests can be written with ES7
 - `npm test:watch` - You can even re-run tests on file changes!
 - `npm run lint` - Run Lint of ESLint with [airbnb-config](https://github.com/airbnb/javascript/tree/master/packages/eslint-config-airbnb) rules
 - `npm run test:examples` - We recommend writing examples on pure JS for better understanding module usage.
-- `npm run build` - Create the ES5 of the ES7 of `./src`
+- `npm run build` - Create the ES5 on ./lib` of the ES7 of `./src`
 - `npm run watch:babel` - watch changes of files on `./src` to compile them on real time
 - `npm run postinstall` - Hook to compile after the module is installed
 

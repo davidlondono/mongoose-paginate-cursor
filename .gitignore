@@ -25,6 +25,7 @@ build/Release
 
 # Compiled Babel
 dist
+lib
 
 # Dependency directory
 node_modules
