@@ -1,2 +1,3 @@
-export default () => 'default';
-export const boilerplate = () => 'boilerplate';
+import Pagination from './Pagination';
+
+export default Pagination;

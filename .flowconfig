@@ -1,7 +1,7 @@
 [ignore]
 *.json
 ./built/.*
-<PROJECT_ROOT>/\(dist\|test\)/
+<PROJECT_ROOT>/\(lib\|test\)/
 *\.ignore\.js
 
 [include]
