@@ -40,7 +40,7 @@ process.stdin.on('data', async(text) => {
     const { nextCursor, objects } = await Foo.paginate({
       limit: 5, sinceId,
       reverse: false,
-      paginateCursor: 'count'
+      paginateCursor: 'count',
     });
     sinceId = nextCursor;
     debug('paged', { objects, nextCursor });

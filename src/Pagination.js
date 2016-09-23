@@ -6,9 +6,8 @@ export default function globalSchema(schema, { name } = {}) {
   const paginate = async function paginateCursor({
     sinceId, maxId, limit = 1,
     select, where = {},
-    keyPaginated = '_id', reverse = false
+    keyPaginated = '_id', reverse = false,
   } = {}, callback) {
-
     try {
       const lsThanE = reverse ? '$gte' : '$lte';
       const lsThan = reverse ? '$gt' : '$lt';
@@ -54,22 +53,20 @@ export default function globalSchema(schema, { name } = {}) {
 
       const objectReturn = {
         objects,
-        nextCursor
+        nextCursor,
       };
       if (callback) {
         callback(null, objectReturn);
       }
       return objectReturn;
     } catch (e) {
-
-      //to throw error on callback
+      // to throw error on callback
       callback(e);
       throw e;
     }
   };
 
   if (name) {
-    console.log(name);
     schema.statics[name] = paginate;
   } else {
     schema.statics.paginate = paginate;

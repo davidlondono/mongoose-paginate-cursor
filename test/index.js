@@ -1,14 +1,13 @@
-import chai, { expect, assert } from 'chai';
+import chai, { expect } from 'chai';
 import dirtyChai from 'dirty-chai';
 import chaiAsPromised from 'chai-as-promised';
-import { it, before, after, beforeEach, afterEach } from 'arrow-mocha/es5';
+import { it, before } from 'arrow-mocha/es5';
 import Promise from 'bluebird';
 import sinon from 'sinon';
 import 'sinon-as-promised';
 import 'sinon-mongoose';
 import Pagination from '../lib';
 import { db } from './common';
-
 import mongoose, { Schema } from 'mongoose';
 
 
@@ -43,15 +42,17 @@ describe('Pagination Cursor', () => {
     expect(FooPagedSchema.statics.paged).to.be.a('function');
   });
 
-  it.only('should call model attributes', async() => {
+  it('should call model attributes', async() => {
     sinon.mock(FooModel)
-      .expects('find').withArgs({})
-      .chain('sort').withArgs({ _id: -1 })
-      .chain('limit').withArgs(1)
+      .expects('find')
+      .withArgs({})
+      .chain('sort')
+      .withArgs({ _id: -1 })
+      .chain('limit')
+      .withArgs(1)
       .chain('exec')
       .resolves([]);
 
     await FooModel.paginate();
   });
-
 });
