@@ -43,5 +43,10 @@ paged.nextCursor // the key value of the next cursor
 `.paginate()` returns a promise, or can be used with a callback
 `.paginate({},callback)`
 
+## Features to have
+- [ ] Map: *let the user map the documents*
+- [ ] QueryMap: *let the user map the query to add chain calls*
+- [ ] Filter: *filter documents and search more to reach the limit*
+- [ ] beforeCursor: *cursor for before request*
 
 ### License: MIT
