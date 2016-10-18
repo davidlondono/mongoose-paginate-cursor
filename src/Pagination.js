@@ -1,12 +1,16 @@
 /**
  * Created by david on 9/22/16.
  */
+import Promise from 'bluebird';
 
 export default function globalSchema(schema, { name } = {}) {
   const paginate = async function paginateCursor({
     sinceId, maxId, limit = 1,
     select, where = {},
-    keyPaginated = '_id', reverse = false,
+    keyPaginated = '_id',
+    orderKey = '_id',
+    reverse = false,
+    map,
   } = {}, callback) {
     try {
       const lsThanE = reverse ? '$gte' : '$lte';
@@ -17,23 +21,33 @@ export default function globalSchema(schema, { name } = {}) {
       const sort = {};
 
       if (sinceId) {
-        findObject[keyPaginated] = findCursor;
-        findCursor[lsThanE] = sinceId;
+        const objFound = await this.findById(sinceId);
+        // find where _id is greater than the one on sinceId
+        findCursor[lsThanE] = objFound[orderKey];
+        findObject[orderKey] = findCursor;
       }
 
       if (maxId) {
-        findObject[keyPaginated] = findCursor;
-        findCursor[gsThan] = maxId;
+        const objFound = await this.findById(maxId);
+        // find where _id is greater than the one on maxId
+        findCursor[gsThan] = objFound[orderKey];
+        findObject[orderKey] = findCursor;
       }
 
-      sort[keyPaginated] = reverse ? 1 : -1;
+      sort[orderKey] = reverse ? 1 : -1;
       let query = this.find(findObject, select)
         .sort(sort);
       if (limit) {
         query = query.limit(limit);
       }
 
-      const objects = await query.exec();
+      // map the objects if there is a map
+      if (map) {
+        query = Promise.resolve(query.exec()).map(map);
+      } else {
+        query = query.exec();
+      }
+      const objects = await query;
       let nextCursor = undefined;
 
       if (objects.length) {
@@ -61,7 +75,9 @@ export default function globalSchema(schema, { name } = {}) {
       return objectReturn;
     } catch (e) {
       // to throw error on callback
-      callback(e);
+      if (callback) {
+        callback(e);
+      }
       throw e;
     }
   };

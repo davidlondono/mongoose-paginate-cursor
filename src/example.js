@@ -41,6 +41,7 @@ process.stdin.on('data', async(text) => {
       limit: 5, sinceId,
       reverse: false,
       paginateCursor: 'count',
+      map: (fff) => fff.count
     });
     sinceId = nextCursor;
     debug('paged', { objects, nextCursor });
