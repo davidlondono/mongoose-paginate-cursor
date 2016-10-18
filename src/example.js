@@ -38,10 +38,10 @@ process.stdin.on('data', async(text) => {
   debug('input', text);
   try {
     const { nextCursor, objects } = await Foo.paginate({
-      limit: 5, sinceId,
+      limit: 5,
+      sinceId,
       reverse: false,
-      paginateCursor: 'count',
-      map: (fff) => fff.count
+      orderKey: 'count',
     });
     sinceId = nextCursor;
     debug('paged', { objects, nextCursor });
