@@ -103,7 +103,7 @@ export default function globalSchema(schema, { name } = {}) {
 
         debug(`${objToFilter.length} element(s) to replace with filter`);
         // while the limit has items to get and the found objects to fetch and filter
-      } while (limitObjects > 0 && objToFilter.length > 0 && false);
+      } while (limitObjects > 0 && objToFilter.length > 0);
     } else {
       // if there is no filter set objects found
       objects = await findWithLimit(findObject, limit);
