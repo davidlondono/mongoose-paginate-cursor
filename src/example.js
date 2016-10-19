@@ -2,15 +2,16 @@
  * Created by david on 9/22/16.
  */
 import mongoose, { Schema } from 'mongoose';
-import Pagination from './Pagination';
 import _debug from 'debug';
+import Pagination from './Pagination';
+
 const debug = _debug('paginationCursor:connection');
 const error = _debug('paginationCursor:error');
 mongoose.Promise = Promise; // ES6 Promise
 
 const db = mongoose.connection;
 
-db.on('error', (err) => error('connection error: %o', err));
+db.on('error', err => error('connection error: %o', err));
 
 db.once('open', () => {
   debug('connection opened with DB');
@@ -42,6 +43,7 @@ process.stdin.on('data', async(text) => {
       sinceId,
       reverse: false,
       orderKey: 'count',
+      filter: () => (Math.random() > 0.1),
     });
     sinceId = nextCursor;
     debug('paged', { objects, nextCursor });
