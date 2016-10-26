@@ -52,7 +52,7 @@ export default function globalSchema(schema, { name } = {}) {
      * @return {*}
      */
     const findWithLimit = async (queryObj, limitFind) => {
-      debug('will find with query', queryObj);
+      debug('will findWithLimit', { where: queryObj, limit: limitFind, select });
       let query = this.find(queryObj, select)
         .sort(sort);
       if (limitFind) {
@@ -119,6 +119,7 @@ export default function globalSchema(schema, { name } = {}) {
       const findNextCursor = {};
       findNextCursor[lsThan] = lastOrderFound;
       findNextCursorWhere[keyOrder] = findNextCursor;
+      debug('find nextCursor with', { where: findNextCursorWhere, select: keyID});
       const nextObject = await this
           .findOne(findNextCursorWhere, keyID)
           .sort(sort);
@@ -126,6 +127,9 @@ export default function globalSchema(schema, { name } = {}) {
       debug('found on nextObject', nextObject);
       if (nextObject) {
         nextCursor = nextObject[keyID];
+        debug('nextCursor found', nextCursor);
+      } else {
+        debug('nextCursor no found');
       }
     }
 
