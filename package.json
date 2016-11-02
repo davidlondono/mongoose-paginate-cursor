@@ -1,6 +1,6 @@
 {
   "name": "mongoose-paginate-cursor",
-  "version": "0.10.3",
+  "version": "0.11.0",
   "description": "Module for pagination with cursor on mongoose",
   "main": "lib/index.js",
   "repository": {
@@ -10,6 +10,7 @@
   "scripts": {
     "pretest": "npm run lint || true",
     "test": "NODE_ENV=test mocha -u bdd -R spec --require babel-core/register",
+    "testDebug": "NODE_ENV=test DEBUG=* mocha -u bdd -R spec --require babel-core/register",
     "clean": "rimraf lib && mkdir lib",
     "lint": "./node_modules/.bin/eslint src test",
     "lint:fix": "eslint src --fix",

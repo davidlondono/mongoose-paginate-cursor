@@ -29,22 +29,29 @@ export default function globalSchema(schema, { name } = {}) {
 
     if (sinceId) {
       const objFound = await this.findById(sinceId);
-      debug('found on sinceId', objFound);
+      if(objFound) {
+        debug('found on sinceId', objFound);
         // find where _id is greater than the one on sinceId
-      findCursor[lsThanE] = objFound[keyOrder];
-      findObject[keyOrder] = findCursor;
+        findCursor[lsThanE] = objFound[keyOrder];
+        findObject[keyOrder] = findCursor;
+      }
     }
 
     if (maxId) {
       const objFound = await this.findById(maxId);
-      debug('found on maxId', objFound);
+      if(objFound) {
+        debug('found on maxId', objFound);
         // find where _id is greater than the one on maxId
-      findCursor[gsThan] = objFound[keyOrder];
-      findObject[keyOrder] = findCursor;
+        findCursor[gsThan] = objFound[keyOrder];
+        findObject[keyOrder] = findCursor;
+      }
     }
 
     sort[keyOrder] = reverse ? 1 : -1;
 
+    if(keyID != keyOrder) {
+      sort[keyID] = reverse ? 1 : -1;
+    }
     /**
      * find with query and map it
      * @param queryObj
@@ -115,14 +122,32 @@ export default function globalSchema(schema, { name } = {}) {
       debug('objects has length', objects.length);
       const lastItem = objects[objects.length - 1];
       const lastOrderFound = lastItem[keyOrder];
-      const findNextCursorWhere = where;
-      const findNextCursor = {};
-      findNextCursor[lsThan] = lastOrderFound;
-      findNextCursorWhere[keyOrder] = findNextCursor;
-      debug('find nextCursor with', { where: findNextCursorWhere, select: keyID});
-      const nextObject = await this
+      let nextObject;
+
+      const findNextWithSameOrder = where;
+
+      findNextWithSameOrder[keyOrder] = lastOrderFound;
+      const findNextCursorID = {};
+      findNextCursorID[lsThan] = lastItem[keyID];
+      findNextWithSameOrder[keyID] = findNextCursorID;
+
+      debug('find nextCursor with', { where: findNextWithSameOrder, select: keyID});
+      nextObject = await this
+          .findOne(findNextWithSameOrder, keyID)
+          .sort(sort);
+
+      if(!nextObject) {
+        const findNextCursorWhere = where;
+        const findNextCursor = {};
+        findNextCursor[lsThan] = lastOrderFound;
+        findNextCursorWhere[keyOrder] = findNextCursor;
+        debug('find nextCursor with', { where: findNextCursorWhere, select: keyID});
+        nextObject = await this
           .findOne(findNextCursorWhere, keyID)
           .sort(sort);
+      } else {
+        debug('found cursor with same keyOrder', lastOrderFound)
+      }
 
       debug('found on nextObject', nextObject);
       if (nextObject) {
