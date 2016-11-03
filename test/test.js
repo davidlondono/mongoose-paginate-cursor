@@ -49,7 +49,16 @@ describe('Pagination Cursor', () => {
       },{
         id:6,
         count: 2
-      },])
+      },{
+        id:7,
+        count: 2
+      },{
+        id:8,
+        count: 2
+      },{
+        id:9,
+        count: 2
+      }])
       .map(({id, count}) => FooModel.create({ id, count })));
 
 
@@ -95,7 +104,7 @@ describe('Pagination Cursor', () => {
       expect(objects[1]).to.have.property('id').which.equals(5);
       expect(objects[2]).to.have.property('id').which.equals(4);
       expect(nextCursor).to.equals(6);
-    })
+    });
   });
 
   describe('next cursor get', () => {
@@ -140,6 +149,19 @@ describe('Pagination Cursor', () => {
       });
       expect(paginate.nextCursor).to.eql(5);
     });
+
+
+    it('should get next cursor as 5 after id 2', async () => {
+      const paginate = await FooModel.paginate({
+        sinceId: 2,
+        keyID: 'id',
+        keyOrder: 'count',
+        limit: 2,
+        reverse: true
+      });
+      console.log(paginate);
+      expect(paginate.nextCursor).to.eql(5);
+  })
 
   })
 });

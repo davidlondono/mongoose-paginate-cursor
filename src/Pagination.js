@@ -143,9 +143,7 @@ export default function globalSchema(schema, { name } = {}) {
           break;
         }
         // set the cursor to search AFTER the last found
-        findCursorOrder[lsThan] = lastOrderValue;
-        queryDocumentsGeneral[keyOrder] = findCursorOrder;
-
+        queryParams.sinceId = lastOrderValue;
 
         // get the new objects from the model list
         objToFilter = await findWithLimit(limitObjects);
@@ -165,31 +163,15 @@ export default function globalSchema(schema, { name } = {}) {
       const lastItem = objects[objects.length - 1];
       const lastOrderFound = lastItem[keyOrder];
       let nextObject;
-
-      const findNextWithSameOrder = where;
-
-      findNextWithSameOrder[keyOrder] = lastOrderFound;
-      const findNextCursorID = {};
-      findNextCursorID[lsThan] = lastItem[keyID];
-      findNextWithSameOrder[keyID] = findNextCursorID;
+      queryParams.sinceId = lastItem[keyID];
+      queryParams.keyOrderSince = lastItem[keyOrder]
+      const findNextWithSameOrder = calculateNewQuery();
 
       debug('find nextCursor with', { where: findNextWithSameOrder, select: keyID});
       nextObject = await this
           .findOne(findNextWithSameOrder, keyID)
-          .sort(sort);
+          .sort(sort).skip(1);
 
-      if(!nextObject) {
-        const findNextCursorWhere = where;
-        const findNextCursor = {};
-        findNextCursor[lsThan] = lastOrderFound;
-        findNextCursorWhere[keyOrder] = findNextCursor;
-        debug('find nextCursor with', { where: findNextCursorWhere, select: keyID});
-        nextObject = await this
-          .findOne(findNextCursorWhere, keyID)
-          .sort(sort);
-      } else {
-        debug('found cursor with same keyOrder', lastOrderFound)
-      }
 
       debug('found on nextObject', nextObject);
       if (nextObject) {
