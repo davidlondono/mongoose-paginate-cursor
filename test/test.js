@@ -105,6 +105,24 @@ describe('Pagination Cursor', () => {
       expect(objects[2]).to.have.property('id').which.equals(4);
       expect(nextCursor).to.equals(6);
     });
+    it('should filter and get even numbers', async () => {
+      const paginate = await FooModel.paginate({
+        sinceId: 2,
+        keyID: 'id',
+        keyOrder: 'count',
+        limit: 3,
+        reverse: true,
+        filter: (foo) => {
+          return foo.id%2 == 1
+        }
+      });
+      console.log(paginate);
+      const { objects, nextCursor } = paginate;
+      expect(objects[0]).to.have.property('id').which.equals(3);
+      expect(objects[1]).to.have.property('id').which.equals(5);
+      expect(objects[2]).to.have.property('id').which.equals(7);
+      expect(nextCursor).to.equals(8);
+    })
   });
 
   describe('next cursor get', () => {

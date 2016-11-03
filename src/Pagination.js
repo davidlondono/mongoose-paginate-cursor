@@ -4,7 +4,8 @@
 import _debug from 'debug';
 import Promise from 'bluebird';
 
-const debug = _debug('mpaginate');
+const debug = _debug('mpaginate:info');
+const debugData = _debug('mpaginate:data');
 
 export default function globalSchema(schema, { name } = {}) {
 
@@ -72,6 +73,9 @@ export default function globalSchema(schema, { name } = {}) {
         // ejm: {$lt: sinceId}
         const querySinceId = {};
         querySinceId[lsThanE] = queryParams.sinceId;
+        if(queryParams.sinceIdExclusive) {
+          querySinceId[lsThan] = queryParams.sinceIdExclusive;
+        }
         equalOrderSince[keyID] = querySinceId;
         debug('calculateNewQuery querySinceId', querySinceId);
         equalOrderSince[keyOrder] = queryParams.keyOrderSince;
@@ -87,6 +91,7 @@ export default function globalSchema(schema, { name } = {}) {
         debug('calculateNewQuery orderSinceEql', orderSinceEql);
         lessOrderSince[keyOrder] = orderSinceEql;
         queryOrs.push(lessOrderSince);
+
       }
       if (queryOrs.length) {
         queryEnd.$or = queryOrs;
@@ -124,17 +129,20 @@ export default function globalSchema(schema, { name } = {}) {
     let limitObjects = limit;
     if (filter) {
       let objToFilter = await findWithLimit(limit);
-
+      let iterationCount = 0;
       // loop once to apply the filter
       do {
+        debugData(`iteration ${iterationCount}, data`, objToFilter);
         // filter objects found that has not been filtered
         const objectsFiltered = await Promise.resolve(objToFilter).filter(filter);
 
+        debugData(`iteration ${iterationCount}, data filtered`, objectsFiltered);
         // add filtered objects to final array
         objects = objects.concat(objectsFiltered);
 
         const lastIndex = objToFilter.length - 1;
         const lastOrderValue = objToFilter[lastIndex][keyOrder];
+        const lastOrderID = objToFilter[lastIndex][keyID];
 
         // set the limit to get the missing objects filtered
         limitObjects -= objectsFiltered.length;
@@ -143,13 +151,14 @@ export default function globalSchema(schema, { name } = {}) {
           break;
         }
         // set the cursor to search AFTER the last found
-        queryParams.sinceId = lastOrderValue;
-
+        queryParams.sinceIdExclusive = lastOrderID;
+        queryParams.keyOrderSince = lastOrderValue;
         // get the new objects from the model list
         objToFilter = await findWithLimit(limitObjects);
 
         debug(`${objToFilter.length} element(s) to replace with filter`);
         // while the limit has items to get and the found objects to fetch and filter
+        iterationCount += 1;
       } while (limitObjects > 0 && objToFilter.length > 0);
     } else {
       // if there is no filter set objects found
