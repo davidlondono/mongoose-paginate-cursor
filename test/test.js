@@ -17,17 +17,41 @@ chai.use(dirtyChai);
 mongoose.Promise = Promise;
 describe('Pagination Cursor', () => {
   describe('objects', () => {
-    const FooSchema = new Schema({ count: Number });
-    const FooPagedSchema = new Schema({ count: Number });
+    const FooSchema = new Schema({ count: Number,id: Number  });
     FooSchema.plugin(Pagination);
-    FooPagedSchema.plugin(Pagination, { name: 'paged' });
     const FooModel = db.model('paginateFoo', FooSchema);
     const fooModelMock = sinon.mock(FooModel);
+
+
+    const FooPagedSchema = new Schema({ count: Number });
+    FooPagedSchema.plugin(Pagination, { name: 'paged' });
     // const FooPagedModel = db.model('pagedeFoo', FooPagedSchema);
 
+
+
+    after(() => FooModel.remove());
     before(() => Promise
-      .resolve([3, 74, 23, 734, 6, 2, 6, 2])
-      .map((count) => FooModel.create({ count })));
+      .resolve([{
+        id:1,
+        count: 1
+      },{
+        id:3,
+        count: 1
+      },{
+        id:2,
+        count: 1
+      },{
+        id:4,
+        count: 2
+      },{
+        id:5,
+        count: 1
+      },{
+        id:6,
+        count: 2
+      },])
+      .map(({id, count}) => FooModel.create({ id, count })));
+
 
 
     it('should let paginate', () => FooModel.paginate());
@@ -55,6 +79,23 @@ describe('Pagination Cursor', () => {
       await FooModel.paginate();
       fooModelMock.restore();
     });
+    it('should bring after an id with equal count',async () => {
+      const paginate = await FooModel.paginate({
+        sinceId: 3,
+        keyID: 'id',
+        keyOrder: 'count',
+        limit: 3,
+        reverse: true
+      });
+      expect(paginate).to.have.property('objects');
+      const { objects, nextCursor } = paginate;
+      console.log(paginate);
+      expect(objects.length).to.equals(3);
+      expect(objects[0]).to.have.property('id').which.equals(3);
+      expect(objects[1]).to.have.property('id').which.equals(5);
+      expect(objects[2]).to.have.property('id').which.equals(4);
+      expect(nextCursor).to.equals(6);
+    })
   });
 
   describe('next cursor get', () => {

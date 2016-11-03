@@ -23,42 +23,84 @@ export default function globalSchema(schema, { name } = {}) {
     const lsThanE = reverse ? '$gte' : '$lte';
     const lsThan = reverse ? '$gt' : '$lt';
     const gsThan = reverse ? '$lt' : '$gt';
-    const findObject = where;
-    const findCursor = {};
-    const sort = {};
+    const queryParams = {
+      sinceId,
+      maxId,
+    };
+
+    const findAnds = [where];
+    const findOrs = [];
+    const queryDocumentsGeneral = {};
+    const findCursorOrder = {};
 
     if (sinceId) {
-      const objFound = await this.findById(sinceId);
+      const findOneQuery = {};
+      findOneQuery[keyID] = sinceId;
+      // ejm: { count: 33 }
+      const objFound = await this.findOne(findOneQuery);
       if(objFound) {
         debug('found on sinceId', objFound);
-        // find where _id is greater than the one on sinceId
-        findCursor[lsThanE] = objFound[keyOrder];
-        findObject[keyOrder] = findCursor;
+        queryParams.keyOrderSince = objFound[keyOrder];
       }
     }
 
     if (maxId) {
-      const objFound = await this.findById(maxId);
+      const findOneQuery = {};
+      findOneQuery[keyID] = maxId;
+      const objFound = await this.findById(findOneQuery);
       if(objFound) {
         debug('found on maxId', objFound);
         // find where _id is greater than the one on maxId
-        findCursor[gsThan] = objFound[keyOrder];
-        findObject[keyOrder] = findCursor;
+        findCursorOrder[gsThan] = objFound[keyOrder];
+        queryDocumentsGeneral[keyOrder] = findCursorOrder;
       }
     }
+    queryDocumentsGeneral.$and = findAnds;
+    //queryDocumentsGeneral.$or = findOrs;
 
+    const sort = {};
     sort[keyOrder] = reverse ? 1 : -1;
-
     if(keyID != keyOrder) {
       sort[keyID] = reverse ? 1 : -1;
     }
+    const calculateNewQuery = () => {
+      const queryEnd = {};
+      const queryOrs = [];
+      if(queryParams.keyOrderSince) {
+        // ejm: { id: {$lt: sinceId}, count: 33 }
+        const equalOrderSince = {};
+        // ejm: {$lt: sinceId}
+        const querySinceId = {};
+        querySinceId[lsThanE] = queryParams.sinceId;
+        equalOrderSince[keyID] = querySinceId;
+        debug('calculateNewQuery querySinceId', querySinceId);
+        equalOrderSince[keyOrder] = queryParams.keyOrderSince;
+        queryOrs.push(equalOrderSince);
+        /////
+
+
+        // ejm: {$lte: 33}
+        const orderSinceEql = {};
+        orderSinceEql[lsThan] = queryParams.keyOrderSince;
+        // ejm: { count: { $lte: 33 } }
+        const lessOrderSince = {};
+        debug('calculateNewQuery orderSinceEql', orderSinceEql);
+        lessOrderSince[keyOrder] = orderSinceEql;
+        queryOrs.push(lessOrderSince);
+      }
+      if (queryOrs.length) {
+        queryEnd.$or = queryOrs;
+      }
+      debug('calculateNewQuery', queryEnd);
+      return queryEnd;
+    };
     /**
      * find with query and map it
-     * @param queryObj
      * @param limitFind
      * @return {*}
      */
-    const findWithLimit = async (queryObj, limitFind) => {
+    const findWithLimit = async (limitFind) => {
+      const queryObj = calculateNewQuery();
       debug('will findWithLimit', { where: queryObj, limit: limitFind, select });
       let query = this.find(queryObj, select)
         .sort(sort);
@@ -81,7 +123,7 @@ export default function globalSchema(schema, { name } = {}) {
     let objects = [];
     let limitObjects = limit;
     if (filter) {
-      let objToFilter = await findWithLimit(findObject, limit);
+      let objToFilter = await findWithLimit(limit);
 
       // loop once to apply the filter
       do {
@@ -101,19 +143,19 @@ export default function globalSchema(schema, { name } = {}) {
           break;
         }
         // set the cursor to search AFTER the last found
-        findCursor[lsThan] = lastOrderValue;
-        findObject[keyOrder] = findCursor;
+        findCursorOrder[lsThan] = lastOrderValue;
+        queryDocumentsGeneral[keyOrder] = findCursorOrder;
 
 
         // get the new objects from the model list
-        objToFilter = await findWithLimit(findObject, limitObjects);
+        objToFilter = await findWithLimit(limitObjects);
 
         debug(`${objToFilter.length} element(s) to replace with filter`);
         // while the limit has items to get and the found objects to fetch and filter
       } while (limitObjects > 0 && objToFilter.length > 0);
     } else {
       // if there is no filter set objects found
-      objects = await findWithLimit(findObject, limit);
+      objects = await findWithLimit(limit);
     }
 
     let nextCursor;
