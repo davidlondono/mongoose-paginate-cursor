@@ -1,6 +1,6 @@
 {
   "name": "mongoose-paginate-cursor",
-  "version": "0.12.4",
+  "version": "0.12.5",
   "description": "Module for pagination with cursor on mongoose",
   "main": "lib/index.js",
   "repository": {
