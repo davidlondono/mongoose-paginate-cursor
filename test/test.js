@@ -33,31 +33,31 @@ describe('Pagination Cursor', () => {
     before(() => Promise
       .resolve([{
         id:1,
-        count: 1
+        count: 0
       },{
         id:3,
-        count: 1
+        count: 0
       },{
         id:2,
-        count: 1
+        count: 0
       },{
         id:4,
-        count: 2
-      },{
-        id:5,
         count: 1
       },{
+        id:5,
+        count: 0
+      },{
         id:6,
-        count: 2
+        count: 1
       },{
         id:7,
-        count: 2
+        count: 1
       },{
         id:8,
-        count: 2
+        count: 1
       },{
         id:9,
-        count: 2
+        count: 1
       }])
       .map(({id, count}) => FooModel.create({ id, count })));
 

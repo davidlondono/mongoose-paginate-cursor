@@ -2,6 +2,7 @@
  * Created by david on 9/22/16.
  */
 import _debug from 'debug';
+import _ from 'lodash';
 import Promise from 'bluebird';
 
 const debug = _debug('mpaginate:info');
@@ -21,6 +22,18 @@ export default function globalSchema(schema, { name } = {}) {
     map,
     filter,
   } = {}) {
+    debug('will paginate', {
+      sinceId,
+      maxId,
+      limit ,
+      select,
+      where,
+      keyID,
+      keyOrder,
+      reverse,
+      map,
+      filter,
+    });
     const lsThanE = reverse ? '$gte' : '$lte';
     const lsThan = reverse ? '$gt' : '$lt';
     const gsThan = reverse ? '$lt' : '$gt';
@@ -29,10 +42,6 @@ export default function globalSchema(schema, { name } = {}) {
       maxId,
     };
 
-    const findAnds = [where];
-    const findOrs = [];
-    const queryDocumentsGeneral = {};
-    const findCursorOrder = {};
 
     if (sinceId) {
       const findOneQuery = {};
@@ -52,11 +61,9 @@ export default function globalSchema(schema, { name } = {}) {
       if(objFound) {
         debug('found on maxId', objFound);
         // find where _id is greater than the one on maxId
-        findCursorOrder[gsThan] = objFound[keyOrder];
-        queryDocumentsGeneral[keyOrder] = findCursorOrder;
+        queryParams.keyOrderMax = objFound[keyOrder];
       }
     }
-    queryDocumentsGeneral.$and = findAnds;
     //queryDocumentsGeneral.$or = findOrs;
 
     const sort = {};
@@ -66,35 +73,74 @@ export default function globalSchema(schema, { name } = {}) {
     }
     const calculateNewQuery = () => {
       const queryEnd = {};
-      const queryOrs = [];
-      if(queryParams.keyOrderSince) {
+      const queryOrsSince = [];
+      const queryOrsMax = [];
+      const queryAnds = [];
+      if(!_.isNil(queryParams.keyOrderSince)) {
         // ejm: { id: {$lt: sinceId}, count: 33 }
         const equalOrderSince = {};
         // ejm: {$lt: sinceId}
         const querySinceId = {};
         querySinceId[lsThanE] = queryParams.sinceId;
-        if(queryParams.sinceIdExclusive) {
+        if(!_.isNil(queryParams.sinceIdExclusive)) {
           querySinceId[lsThan] = queryParams.sinceIdExclusive;
         }
         equalOrderSince[keyID] = querySinceId;
         debug('calculateNewQuery querySinceId', querySinceId);
         equalOrderSince[keyOrder] = queryParams.keyOrderSince;
-        queryOrs.push(equalOrderSince);
+        queryOrsSince.push(equalOrderSince);
         /////
 
 
-        // ejm: {$lte: 33}
+        // ejm: {$lt: 33}
         const orderSinceEql = {};
         orderSinceEql[lsThan] = queryParams.keyOrderSince;
         // ejm: { count: { $lte: 33 } }
         const lessOrderSince = {};
         debug('calculateNewQuery orderSinceEql', orderSinceEql);
         lessOrderSince[keyOrder] = orderSinceEql;
-        queryOrs.push(lessOrderSince);
+        queryOrsSince.push(lessOrderSince);
 
       }
-      if (queryOrs.length) {
-        queryEnd.$or = queryOrs;
+
+      if(!_.isNil(queryParams.keyOrderMax)) {
+
+        // ejm: { id: {$gt: sinceId}, count: 55 }
+        const equalOrderSince = {};
+        // ejm: {$lt: sinceId}
+        const queryMaxId = {};
+        queryMaxId[gsThan] = queryParams.maxId;
+        equalOrderSince[keyID] = queryMaxId;
+        debug('calculateNewQuery queryMaxId', queryMaxId);
+        equalOrderSince[keyOrder] = queryParams.keyOrderMax;
+        queryOrsSince.push(equalOrderSince);
+        /////
+
+
+        // ejm: {$gt: 55 }
+        const orderMaxEql = {};
+        orderMaxEql[gsThan] = queryParams.keyOrderMax;
+        // ejm: { count: { gt: 55 } }
+        const lessOrderSince = {};
+        debug('calculateNewQuery orderMaxEql', orderMaxEql);
+        lessOrderSince[keyOrder] = orderMaxEql;
+        queryOrsSince.push(lessOrderSince);
+      }
+      if (queryOrsSince.length) {
+        queryAnds.push({
+          $or: queryOrsSince
+        });
+      }
+      if (queryOrsMax.length) {
+        queryAnds.push({
+          $or: queryOrsMax
+        });
+      }
+      if(!_.isEmpty(where)){
+        queryAnds.push(where);
+      }
+      if (queryAnds.length) {
+        queryEnd.$and = queryAnds;
       }
       debug('calculateNewQuery', queryEnd);
       return queryEnd;
