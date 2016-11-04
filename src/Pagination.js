@@ -76,8 +76,10 @@ export default function globalSchema(schema, { name } = {}) {
       const middleRangeQueryOrder = {};
       const queryOrs = [];
       const queryAnds = [];
+      const keyOrderMax = queryParams.keyOrderMax;
+      const keyOrderSince = queryParams.keyOrderSince;
 
-      if (!_.isNil(queryParams.keyOrderSince)) {
+      if (!_.isNil(keyOrderSince)) {
         // high range
         // ejm: { id: {$lt: sinceId}, count: 55 }
         const equalOrderSince = {};
@@ -89,32 +91,33 @@ export default function globalSchema(schema, { name } = {}) {
         }
         equalOrderSince[keyID] = querySinceId;
         debug('calculateNewQuery querySinceId', querySinceId);
-        equalOrderSince[keyOrder] = queryParams.keyOrderSince;
-        queryOrs.push(equalOrderSince);
-        // ///
-
-
-        // middle range
-        // ejm: {$lt: 55}
-        middleRangeQueryOrder[lsThan] = queryParams.keyOrderSince;
+        equalOrderSince[keyOrder] = keyOrderSince;
+        if (keyOrderMax === keyOrderSince) {
+          queryAnds.push(equalOrderSince);
+        } else {
+          queryOrs.push(equalOrderSince);
+          // middle range
+          // ejm: {$lt: 55}
+          middleRangeQueryOrder[lsThan] = queryParams.keyOrderSince;
+        }
       }
-
-      if (!_.isNil(queryParams.keyOrderMax)) {
+      if (!_.isNil(keyOrderMax)) {
         // ejm: { id: {$gt: sinceId}, count: 33 }
-        const equalOrderSince = {};
+        const equalOrderMax = {};
         // ejm: {$lt: sinceId}
         const queryMaxId = {};
         queryMaxId[gsThan] = queryParams.maxId;
-        equalOrderSince[keyID] = queryMaxId;
+        equalOrderMax[keyID] = queryMaxId;
         debug('calculateNewQuery queryMaxId', queryMaxId);
-        equalOrderSince[keyOrder] = queryParams.keyOrderMax;
-        queryOrs.push(equalOrderSince);
-        // ///
-
-
-        // middle range
-        // ejm: {$gt: 33 }
-        middleRangeQueryOrder[gsThan] = queryParams.keyOrderMax;
+        equalOrderMax[keyOrder] = keyOrderMax;
+        if (keyOrderMax === keyOrderSince) {
+          queryAnds.push(equalOrderMax);
+        } else {
+          queryOrs.push(equalOrderMax);
+          // middle range
+          // ejm: {$gt: 33 }
+          middleRangeQueryOrder[gsThan] = queryParams.keyOrderMax;
+        }
       }
       if (!_.isEmpty(middleRangeQueryOrder)) {
         const queryOrderMiddle = {};
@@ -122,7 +125,6 @@ export default function globalSchema(schema, { name } = {}) {
         queryOrs.push(queryOrderMiddle);
       }
       if (queryOrs.length) {
-        console.log(queryOrs);
         queryAnds.push({
           $or: queryOrs,
         });
@@ -133,7 +135,7 @@ export default function globalSchema(schema, { name } = {}) {
       if (queryAnds.length) {
         queryEnd.$and = queryAnds;
       }
-      debug('calculateNewQuery', queryEnd);
+      debug('calculateNewQuery', JSON.stringify(queryEnd));
       return queryEnd;
     };
     /**
@@ -166,6 +168,10 @@ export default function globalSchema(schema, { name } = {}) {
     let limitObjects = limit;
     if (filter) {
       let objToFilter = await findWithLimit(limit);
+      const objectsFoundFirst = objToFilter.length;
+      if (objectsFoundFirst < limitObjects) {
+        limitObjects = objectsFoundFirst;
+      }
       let iterationCount = 0;
       // loop once to apply the filter
       do {
@@ -177,9 +183,6 @@ export default function globalSchema(schema, { name } = {}) {
         // add filtered objects to final array
         objects = objects.concat(objectsFiltered);
 
-        const lastIndex = objToFilter.length - 1;
-        const lastOrderValue = objToFilter[lastIndex][keyOrder];
-        const lastOrderID = objToFilter[lastIndex][keyID];
 
         // set the limit to get the missing objects filtered
         limitObjects -= objectsFiltered.length;
@@ -187,6 +190,9 @@ export default function globalSchema(schema, { name } = {}) {
         if (limitObjects <= 0) {
           break;
         }
+        const lastIndex = objToFilter.length - 1;
+        const lastOrderValue = objToFilter[lastIndex][keyOrder];
+        const lastOrderID = objToFilter[lastIndex][keyID];
         // set the cursor to search AFTER the last found
         queryParams.sinceIdExclusive = lastOrderID;
         queryParams.keyOrderSince = lastOrderValue;

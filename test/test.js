@@ -116,14 +116,14 @@ describe('Pagination Cursor', () => {
           return foo.id%2 == 1
         }
       });
-      console.log(paginate);
       const { objects, nextCursor } = paginate;
+      expect(objects).to.have.property('length').which.equals(3);
       expect(objects[0]).to.have.property('id').which.equals(3);
       expect(objects[1]).to.have.property('id').which.equals(5);
       expect(objects[2]).to.have.property('id').which.equals(7);
       expect(nextCursor).to.equals(8);
     });
-    it('should bring until id 3', async () => {
+    it('should bring from id 2 until id 6', async () => {
       const paginate = await FooModel.paginate({
         sinceId: 2,
         maxId: 6,
@@ -133,6 +133,42 @@ describe('Pagination Cursor', () => {
         reverse: true
       });
       console.log(paginate);
+      const { objects, nextCursor } = paginate;
+      expect(objects).to.have.property('length').which.equals(4,'length dont match');
+      expect(objects[0]).to.have.property('id').which.equals(2);
+      expect(objects[1]).to.have.property('id').which.equals(3);
+      expect(objects[2]).to.have.property('id').which.equals(5);
+      expect(objects[3]).to.have.property('id').which.equals(4);
+    });
+    it('should bring until id 5', async () => {
+      const paginate = await FooModel.paginate({
+        maxId: 5,
+        keyID: 'id',
+        keyOrder: 'count',
+        limit: 5,
+        reverse: true
+      });
+      const { objects, nextCursor } = paginate;
+      expect(objects).to.have.property('length').which.equals(3);
+      expect(objects[0]).to.have.property('id').which.equals(1);
+      expect(objects[1]).to.have.property('id').which.equals(2);
+      expect(objects[2]).to.have.property('id').which.equals(3);
+    })
+    it('should bring until id 5 with filter true', async () => {
+      const paginate = await FooModel.paginate({
+        sinceId: 2,
+        maxId: 5,
+        keyID: 'id',
+        keyOrder: 'count',
+        limit: 5,
+        filter: () => true,
+        reverse: true
+      });
+      console.log(paginate);
+      const { objects, nextCursor } = paginate;
+      expect(objects).to.have.property('length').which.equals(2);
+      expect(objects[0]).to.have.property('id').which.equals(2);
+      expect(objects[1]).to.have.property('id').which.equals(3);
     })
   });
 
