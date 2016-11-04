@@ -9,7 +9,6 @@ const debug = _debug('mpaginate:info');
 const debugData = _debug('mpaginate:data');
 
 export default function globalSchema(schema, { name } = {}) {
-
   const paginate = async function paginate({
     sinceId,
     maxId,
@@ -25,7 +24,7 @@ export default function globalSchema(schema, { name } = {}) {
     debug('will paginate', {
       sinceId,
       maxId,
-      limit ,
+      limit,
       select,
       where,
       keyID,
@@ -48,7 +47,7 @@ export default function globalSchema(schema, { name } = {}) {
       findOneQuery[keyID] = sinceId;
       // ejm: { count: 33 }
       const objFound = await this.findOne(findOneQuery);
-      if(objFound) {
+      if (objFound) {
         debug('found on sinceId', objFound);
         queryParams.keyOrderSince = objFound[keyOrder];
       }
@@ -58,17 +57,17 @@ export default function globalSchema(schema, { name } = {}) {
       const findOneQuery = {};
       findOneQuery[keyID] = maxId;
       const objFound = await this.findById(findOneQuery);
-      if(objFound) {
+      if (objFound) {
         debug('found on maxId', objFound);
         // find where _id is greater than the one on maxId
         queryParams.keyOrderMax = objFound[keyOrder];
       }
     }
-    //queryDocumentsGeneral.$or = findOrs;
+    // queryDocumentsGeneral.$or = findOrs;
 
     const sort = {};
     sort[keyOrder] = reverse ? 1 : -1;
-    if(keyID != keyOrder) {
+    if (keyID !== keyOrder) {
       sort[keyID] = reverse ? 1 : -1;
     }
     const calculateNewQuery = () => {
@@ -76,20 +75,20 @@ export default function globalSchema(schema, { name } = {}) {
       const queryOrsSince = [];
       const queryOrsMax = [];
       const queryAnds = [];
-      if(!_.isNil(queryParams.keyOrderSince)) {
+      if (!_.isNil(queryParams.keyOrderSince)) {
         // ejm: { id: {$lt: sinceId}, count: 33 }
         const equalOrderSince = {};
         // ejm: {$lt: sinceId}
         const querySinceId = {};
         querySinceId[lsThanE] = queryParams.sinceId;
-        if(!_.isNil(queryParams.sinceIdExclusive)) {
+        if (!_.isNil(queryParams.sinceIdExclusive)) {
           querySinceId[lsThan] = queryParams.sinceIdExclusive;
         }
         equalOrderSince[keyID] = querySinceId;
         debug('calculateNewQuery querySinceId', querySinceId);
         equalOrderSince[keyOrder] = queryParams.keyOrderSince;
         queryOrsSince.push(equalOrderSince);
-        /////
+        // ///
 
 
         // ejm: {$lt: 33}
@@ -100,11 +99,9 @@ export default function globalSchema(schema, { name } = {}) {
         debug('calculateNewQuery orderSinceEql', orderSinceEql);
         lessOrderSince[keyOrder] = orderSinceEql;
         queryOrsSince.push(lessOrderSince);
-
       }
 
-      if(!_.isNil(queryParams.keyOrderMax)) {
-
+      if (!_.isNil(queryParams.keyOrderMax)) {
         // ejm: { id: {$gt: sinceId}, count: 55 }
         const equalOrderSince = {};
         // ejm: {$lt: sinceId}
@@ -114,7 +111,7 @@ export default function globalSchema(schema, { name } = {}) {
         debug('calculateNewQuery queryMaxId', queryMaxId);
         equalOrderSince[keyOrder] = queryParams.keyOrderMax;
         queryOrsSince.push(equalOrderSince);
-        /////
+        // ///
 
 
         // ejm: {$gt: 55 }
@@ -128,15 +125,15 @@ export default function globalSchema(schema, { name } = {}) {
       }
       if (queryOrsSince.length) {
         queryAnds.push({
-          $or: queryOrsSince
+          $or: queryOrsSince,
         });
       }
       if (queryOrsMax.length) {
         queryAnds.push({
-          $or: queryOrsMax
+          $or: queryOrsMax,
         });
       }
-      if(!_.isEmpty(where)){
+      if (!_.isEmpty(where)) {
         queryAnds.push(where);
       }
       if (queryAnds.length) {
@@ -216,20 +213,18 @@ export default function globalSchema(schema, { name } = {}) {
     if (objects.length) {
       debug('objects has length', objects.length);
       const lastItem = objects[objects.length - 1];
-      const lastOrderFound = lastItem[keyOrder];
-      let nextObject;
       queryParams.sinceId = lastItem[keyID];
-      queryParams.keyOrderSince = lastItem[keyOrder]
+      queryParams.keyOrderSince = lastItem[keyOrder];
       const findNextWithSameOrder = calculateNewQuery();
 
-      debug('find nextCursor with', { where: findNextWithSameOrder, select: keyID});
-      nextObject = await this
+      debug('find nextCursor with', { where: findNextWithSameOrder, select: keyID });
+      const nextObject = await this
           .findOne(findNextWithSameOrder, keyID)
           .sort(sort).skip(1);
 
 
       debug('found on nextObject', nextObject);
-      if (nextObject) {
+      if (!_.isNil(nextObject)) {
         nextCursor = nextObject[keyID];
         debug('nextCursor found', nextCursor);
       } else {

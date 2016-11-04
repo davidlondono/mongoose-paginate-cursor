@@ -1,6 +1,6 @@
 {
   "name": "mongoose-paginate-cursor",
-  "version": "0.12.5",
+  "version": "0.12.6",
   "description": "Module for pagination with cursor on mongoose",
   "main": "lib/index.js",
   "repository": {
@@ -30,6 +30,7 @@
     "babel-preset-stage-3": "6.17.0",
     "bluebird": "3.4.6",
     "debug": "2.*",
+    "lodash": "^4.16.6",
     "mongoose": ">=4.5",
     "rimraf": "2.5.4"
   },
