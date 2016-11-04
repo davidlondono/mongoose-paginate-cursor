@@ -122,6 +122,17 @@ describe('Pagination Cursor', () => {
       expect(objects[1]).to.have.property('id').which.equals(5);
       expect(objects[2]).to.have.property('id').which.equals(7);
       expect(nextCursor).to.equals(8);
+    });
+    it('should bring until id 3', async () => {
+      const paginate = await FooModel.paginate({
+        sinceId: 2,
+        maxId: 6,
+        keyID: 'id',
+        keyOrder: 'count',
+        limit: 5,
+        reverse: true
+      });
+      console.log(paginate);
     })
   });
 

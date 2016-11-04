@@ -56,7 +56,7 @@ export default function globalSchema(schema, { name } = {}) {
     if (maxId) {
       const findOneQuery = {};
       findOneQuery[keyID] = maxId;
-      const objFound = await this.findById(findOneQuery);
+      const objFound = await this.findOne(findOneQuery);
       if (objFound) {
         debug('found on maxId', objFound);
         // find where _id is greater than the one on maxId
@@ -72,11 +72,14 @@ export default function globalSchema(schema, { name } = {}) {
     }
     const calculateNewQuery = () => {
       const queryEnd = {};
-      const queryOrsSince = [];
-      const queryOrsMax = [];
+      // ejm: { $lt: 55, $gt: 55 }
+      const middleRangeQueryOrder = {};
+      const queryOrs = [];
       const queryAnds = [];
+
       if (!_.isNil(queryParams.keyOrderSince)) {
-        // ejm: { id: {$lt: sinceId}, count: 33 }
+        // high range
+        // ejm: { id: {$lt: sinceId}, count: 55 }
         const equalOrderSince = {};
         // ejm: {$lt: sinceId}
         const querySinceId = {};
@@ -87,22 +90,17 @@ export default function globalSchema(schema, { name } = {}) {
         equalOrderSince[keyID] = querySinceId;
         debug('calculateNewQuery querySinceId', querySinceId);
         equalOrderSince[keyOrder] = queryParams.keyOrderSince;
-        queryOrsSince.push(equalOrderSince);
+        queryOrs.push(equalOrderSince);
         // ///
 
 
-        // ejm: {$lt: 33}
-        const orderSinceEql = {};
-        orderSinceEql[lsThan] = queryParams.keyOrderSince;
-        // ejm: { count: { $lte: 33 } }
-        const lessOrderSince = {};
-        debug('calculateNewQuery orderSinceEql', orderSinceEql);
-        lessOrderSince[keyOrder] = orderSinceEql;
-        queryOrsSince.push(lessOrderSince);
+        // middle range
+        // ejm: {$lt: 55}
+        middleRangeQueryOrder[lsThan] = queryParams.keyOrderSince;
       }
 
       if (!_.isNil(queryParams.keyOrderMax)) {
-        // ejm: { id: {$gt: sinceId}, count: 55 }
+        // ejm: { id: {$gt: sinceId}, count: 33 }
         const equalOrderSince = {};
         // ejm: {$lt: sinceId}
         const queryMaxId = {};
@@ -110,27 +108,23 @@ export default function globalSchema(schema, { name } = {}) {
         equalOrderSince[keyID] = queryMaxId;
         debug('calculateNewQuery queryMaxId', queryMaxId);
         equalOrderSince[keyOrder] = queryParams.keyOrderMax;
-        queryOrsSince.push(equalOrderSince);
+        queryOrs.push(equalOrderSince);
         // ///
 
 
-        // ejm: {$gt: 55 }
-        const orderMaxEql = {};
-        orderMaxEql[gsThan] = queryParams.keyOrderMax;
-        // ejm: { count: { gt: 55 } }
-        const lessOrderSince = {};
-        debug('calculateNewQuery orderMaxEql', orderMaxEql);
-        lessOrderSince[keyOrder] = orderMaxEql;
-        queryOrsSince.push(lessOrderSince);
+        // middle range
+        // ejm: {$gt: 33 }
+        middleRangeQueryOrder[gsThan] = queryParams.keyOrderMax;
       }
-      if (queryOrsSince.length) {
-        queryAnds.push({
-          $or: queryOrsSince,
-        });
+      if (!_.isEmpty(middleRangeQueryOrder)) {
+        const queryOrderMiddle = {};
+        queryOrderMiddle[keyOrder] = middleRangeQueryOrder;
+        queryOrs.push(queryOrderMiddle);
       }
-      if (queryOrsMax.length) {
+      if (queryOrs.length) {
+        console.log(queryOrs);
         queryAnds.push({
-          $or: queryOrsMax,
+          $or: queryOrs,
         });
       }
       if (!_.isEmpty(where)) {
