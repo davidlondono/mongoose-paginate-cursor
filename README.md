@@ -1,6 +1,5 @@
 # mongoose-paginate-cursor 
 [![Build Status](https://travis-ci.org/davidlondono/mongoose-paginate-cursor.svg?branch=master)](https://travis-ci.org/davidlondono/mongoose-paginate-cursor)
-[![Windows Build status](https://ci.appveyor.com/api/projects/status/yya8kq68y4k3sy3h?svg=true)](https://ci.appveyor.com/project/davidlondono/mongoose-paginate-cursor)
 [![codecov](https://codecov.io/gh/davidlondono/mongoose-paginate-cursor/branch/master/graph/badge.svg)](https://codecov.io/gh/davidlondono/mongoose-paginate-cursor)
 [![npm](https://img.shields.io/npm/dm/mongoose-paginate-cursor.svg?maxAge=2592000)](https://www.npmjs.com/package/mongoose-paginate-cursor)
 [![License](https://img.shields.io/npm/l/mongoose-paginate-cursor.svg?maxAge=2592000?style=plastic)](https://github.com/davidlondono/mongoose-paginate-cursor/blob/master/LICENSE)
