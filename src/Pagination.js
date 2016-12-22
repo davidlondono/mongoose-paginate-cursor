@@ -70,6 +70,7 @@ export default function globalSchema(schema, { name } = {}) {
     if (keyID !== keyOrder) {
       sort[keyID] = reverse ? 1 : -1;
     }
+    const equalKeys = (keyID === keyOrder);
     const calculateNewQuery = () => {
       const queryEnd = {};
       // ejm: { $lt: 55, $gt: 55 }
@@ -91,8 +92,10 @@ export default function globalSchema(schema, { name } = {}) {
         }
         equalOrderSince[keyID] = querySinceId;
         debug('calculateNewQuery querySinceId', querySinceId);
-        equalOrderSince[keyOrder] = keyOrderSince;
-        if (keyOrderMax === keyOrderSince) {
+        if (!equalKeys) {
+          equalOrderSince[keyOrder] = keyOrderSince;
+        }
+        if (keyOrderMax === keyOrderSince || equalKeys) {
           queryAnds.push(equalOrderSince);
         } else {
           queryOrs.push(equalOrderSince);
@@ -109,8 +112,10 @@ export default function globalSchema(schema, { name } = {}) {
         queryMaxId[gsThan] = queryParams.maxId;
         equalOrderMax[keyID] = queryMaxId;
         debug('calculateNewQuery queryMaxId', queryMaxId);
-        equalOrderMax[keyOrder] = keyOrderMax;
-        if (keyOrderMax === keyOrderSince) {
+        if (!equalKeys) {
+          equalOrderMax[keyOrder] = keyOrderMax;
+        }
+        if (keyOrderMax === keyOrderSince || equalKeys) {
           queryAnds.push(equalOrderMax);
         } else {
           queryOrs.push(equalOrderMax);
@@ -166,6 +171,8 @@ export default function globalSchema(schema, { name } = {}) {
 
     let objects = [];
     let limitObjects = limit;
+
+    // FILTER
     if (filter) {
       let objToFilter = await findWithLimit(limit);
       const objectsFoundFirst = objToFilter.length;
