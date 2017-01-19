@@ -13,6 +13,7 @@ export default function globalSchema(schema, { name } = {}) {
     sinceId,
     maxId,
     limit = 1,
+    page = 0,
     select,
     where = {},
     keyID = '_id',
@@ -21,6 +22,7 @@ export default function globalSchema(schema, { name } = {}) {
     map,
     filter,
   } = {}) {
+
     debug('will paginate', {
       sinceId,
       maxId,
@@ -91,10 +93,10 @@ export default function globalSchema(schema, { name } = {}) {
           querySinceId[lsThan] = queryParams.sinceIdExclusive;
         }
         equalOrderSince[keyID] = querySinceId;
-        debug('calculateNewQuery querySinceId', querySinceId);
         if (!equalKeys) {
           equalOrderSince[keyOrder] = keyOrderSince;
         }
+        debug('calculateNewQuery querySinceId', querySinceId);
         if (keyOrderMax === keyOrderSince || equalKeys) {
           queryAnds.push(equalOrderSince);
         } else {
@@ -111,10 +113,10 @@ export default function globalSchema(schema, { name } = {}) {
         const queryMaxId = {};
         queryMaxId[gsThan] = queryParams.maxId;
         equalOrderMax[keyID] = queryMaxId;
-        debug('calculateNewQuery queryMaxId', queryMaxId);
         if (!equalKeys) {
           equalOrderMax[keyOrder] = keyOrderMax;
         }
+        debug('calculateNewQuery queryMaxId', queryMaxId);
         if (keyOrderMax === keyOrderSince || equalKeys) {
           queryAnds.push(equalOrderMax);
         } else {
@@ -148,13 +150,16 @@ export default function globalSchema(schema, { name } = {}) {
      * @param limitFind
      * @return {*}
      */
-    const findWithLimit = async (limitFind) => {
+    const findWithLimit = async (limitFind, pageFind) => {
       const queryObj = calculateNewQuery();
       debug('will findWithLimit', { where: queryObj, limit: limitFind, select });
       let query = this.find(queryObj, select)
         .sort(sort);
       if (limitFind) {
         query = query.limit(limitFind);
+        if (pageFind) {
+          query = query.skip(limitFind * pageFind);
+        }
       }
 
       const objectsFirstFound = await query.exec();
@@ -174,7 +179,7 @@ export default function globalSchema(schema, { name } = {}) {
 
     // FILTER
     if (filter) {
-      let objToFilter = await findWithLimit(limit);
+      let objToFilter = await findWithLimit(limit, page);
       const objectsFoundFirst = objToFilter.length;
       if (objectsFoundFirst < limitObjects) {
         limitObjects = objectsFoundFirst;
@@ -212,7 +217,7 @@ export default function globalSchema(schema, { name } = {}) {
       } while (limitObjects > 0 && objToFilter.length > 0);
     } else {
       // if there is no filter set objects found
-      objects = await findWithLimit(limit);
+      objects = await findWithLimit(limit, page);
     }
 
     let nextCursor;

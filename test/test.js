@@ -229,4 +229,32 @@ describe('Pagination Cursor', () => {
   })
 
   })
+  describe.only('filter all don\'t infinite loop', () => {
+    const FooSchema = new Schema({ uid: Number });
+    FooSchema.plugin(Pagination);
+    const FooModel = db.model('paginateFilterFoo', FooSchema);
+    after(() => FooModel.remove());
+    before(() => Promise
+      .map([{
+        uid:1,
+      },{
+        uid:3,
+      },{
+        uid:2,
+      },{
+        uid:4,
+      },{
+        uid:5,
+      },],(m) => FooModel.create(m)));
+
+    it('should not infinite find', async () => {
+      await FooModel.paginate({
+        where:{
+          uid: {$lt:20},
+        },
+        filter: () => false,
+        limit: 2
+      });
+    })
+  })
 });
