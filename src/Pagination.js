@@ -94,7 +94,8 @@ export default function globalSchema(schema, { name } = {}) {
         }
         equalOrderSince[keyID] = querySinceId;
         if (!equalKeys) {
-          equalOrderSince[keyOrder] = keyOrderSince;
+          _.set(equalOrderSince, keyOrder, keyOrderSince);
+          // equalOrderSince[keyOrder] = keyOrderSince;
         }
         debug('calculateNewQuery querySinceId', querySinceId);
         if (keyOrderMax === keyOrderSince || equalKeys) {
@@ -114,7 +115,8 @@ export default function globalSchema(schema, { name } = {}) {
         queryMaxId[gsThan] = queryParams.maxId;
         equalOrderMax[keyID] = queryMaxId;
         if (!equalKeys) {
-          equalOrderMax[keyOrder] = keyOrderMax;
+          _.set(equalOrderMax, keyOrder, keyOrderMax);
+          // equalOrderMax[keyOrder] = keyOrderMax;
         }
         debug('calculateNewQuery queryMaxId', queryMaxId);
         if (keyOrderMax === keyOrderSince || equalKeys) {
@@ -128,7 +130,8 @@ export default function globalSchema(schema, { name } = {}) {
       }
       if (!_.isEmpty(middleRangeQueryOrder)) {
         const queryOrderMiddle = {};
-        queryOrderMiddle[keyOrder] = middleRangeQueryOrder;
+        _.set(queryOrderMiddle, keyOrder, middleRangeQueryOrder);
+        // queryOrderMiddle[keyOrder] = middleRangeQueryOrder;
         queryOrs.push(queryOrderMiddle);
       }
       if (queryOrs.length) {
@@ -203,7 +206,7 @@ export default function globalSchema(schema, { name } = {}) {
           break;
         }
         const lastIndex = objToFilter.length - 1;
-        const lastOrderValue = objToFilter[lastIndex][keyOrder];
+        const lastOrderValue = _.get(objToFilter[lastIndex], keyOrder);
         const lastOrderID = objToFilter[lastIndex][keyID];
         // set the cursor to search AFTER the last found
         queryParams.sinceIdExclusive = lastOrderID;
@@ -226,7 +229,7 @@ export default function globalSchema(schema, { name } = {}) {
       debug('objects has length', objects.length);
       const lastItem = objects[objects.length - 1];
       queryParams.sinceId = lastItem[keyID];
-      queryParams.keyOrderSince = lastItem[keyOrder];
+      queryParams.keyOrderSince = _.get(lastItem, keyOrder);
       const findNextWithSameOrder = calculateNewQuery();
 
       debug('find nextCursor with', { where: findNextWithSameOrder, select: keyID });
