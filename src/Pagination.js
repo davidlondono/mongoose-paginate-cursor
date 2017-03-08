@@ -178,7 +178,7 @@ export default function globalSchema(schema, { name } = {}) {
 
 
     let objects = [];
-    let limitObjects = limit;
+    let limitObjects = parseInt(limit, 10) || 1;
 
     // FILTER
     if (filter) {
