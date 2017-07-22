@@ -13,7 +13,7 @@
 ```js
 // body parser
 var mongoose = require('mongoose');
-var mongoosePaginate = require('mongoose-paginate-cursor');
+var mongoosePaginate = require('mongoose-paginate-cursor').default;
 
 var ModelSchema = mongoose.Schema({
   title: String,
