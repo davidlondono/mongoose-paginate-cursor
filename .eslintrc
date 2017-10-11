@@ -1,15 +1,14 @@
 {
   "extends": "airbnb-base",
-  "parser": "babel-eslint",
 	"plugins": [
-		"mocha",
-    "babel"
+		"mocha"
 	],
   "env": {
     "node": true,
     "mocha": true
   },
   "rules": {
+    "no-await-in-loop": 0,
     "no-underscore-dangle": 0,
     "no-param-reassign": [
       "error",
@@ -24,7 +23,6 @@
       }
     ],
 		"mocha/no-exclusive-tests": "error",
-    "generator-star-spacing": 0,
-    "babel/generator-star-spacing": 1
+    "generator-star-spacing": 0
   }
 }

@@ -1,14 +1,12 @@
 /**
  * Created by david on 9/22/16.
  */
-import _debug from 'debug';
-import _ from 'lodash';
-import Promise from 'bluebird';
+const _debug = require('debug');
+const _ = require('lodash');
 
 const debug = _debug('mpaginate:info');
-const debugData = _debug('mpaginate:data');
 
-export default function globalSchema(schema, { name } = {}) {
+function globalSchema(schema, { name } = {}) {
   const paginate = async function paginate({
     sinceId,
     maxId,
@@ -19,10 +17,8 @@ export default function globalSchema(schema, { name } = {}) {
     keyID = '_id',
     keyOrder = '_id',
     reverse = false,
-    map,
-    filter,
+    lean = false,
   } = {}) {
-
     debug('will paginate', {
       sinceId,
       maxId,
@@ -32,8 +28,6 @@ export default function globalSchema(schema, { name } = {}) {
       keyID,
       keyOrder,
       reverse,
-      map,
-      filter,
     });
     const lsThanE = reverse ? '$gte' : '$lte';
     const lsThan = reverse ? '$gt' : '$lt';
@@ -48,7 +42,7 @@ export default function globalSchema(schema, { name } = {}) {
       const findOneQuery = {};
       findOneQuery[keyID] = sinceId;
       // ejm: { count: 33 }
-      const objFound = await this.findOne(findOneQuery);
+      const objFound = await this.findOne(findOneQuery, `${keyOrder}`).lean();
       if (objFound) {
         debug('found on sinceId', objFound);
         queryParams.keyOrderSince = objFound[keyOrder];
@@ -58,7 +52,7 @@ export default function globalSchema(schema, { name } = {}) {
     if (maxId) {
       const findOneQuery = {};
       findOneQuery[keyID] = maxId;
-      const objFound = await this.findOne(findOneQuery);
+      const objFound = await this.findOne(findOneQuery, `${keyOrder}`).lean();
       if (objFound) {
         debug('found on maxId', objFound);
         // find where _id is greater than the one on maxId
@@ -79,8 +73,7 @@ export default function globalSchema(schema, { name } = {}) {
       const middleRangeQueryOrder = {};
       const queryOrs = [];
       const queryAnds = [];
-      const keyOrderMax = queryParams.keyOrderMax;
-      const keyOrderSince = queryParams.keyOrderSince;
+      const { keyOrderMax, keyOrderSince } = queryParams;
 
       if (!_.isNil(keyOrderSince)) {
         // high range
@@ -164,64 +157,18 @@ export default function globalSchema(schema, { name } = {}) {
           query = query.skip(limitFind * pageFind);
         }
       }
+      if (lean) {
+        query = query.lean();
+      }
 
       const objectsFirstFound = await query.exec();
-      let mappedObjects;
-      // map the objects if there is a map
-      if (map) {
-        mappedObjects = await Promise.resolve(objectsFirstFound).map(map);
-      } else {
-        mappedObjects = objectsFirstFound;
-      }
-      return mappedObjects;
+      return objectsFirstFound;
     };
 
 
-    let objects = [];
-    let limitObjects = parseInt(limit, 10) || 1;
+    const limitObjects = parseInt(limit, 10) || 1;
 
-    // FILTER
-    if (filter) {
-      let objToFilter = await findWithLimit(limit, page);
-      const objectsFoundFirst = objToFilter.length;
-      if (objectsFoundFirst < limitObjects) {
-        limitObjects = objectsFoundFirst;
-      }
-      let iterationCount = 0;
-      // loop once to apply the filter
-      do {
-        debugData(`iteration ${iterationCount}, data`, objToFilter);
-        // filter objects found that has not been filtered
-        const objectsFiltered = await Promise.resolve(objToFilter).filter(filter);
-
-        debugData(`iteration ${iterationCount}, data filtered`, objectsFiltered);
-        // add filtered objects to final array
-        objects = objects.concat(objectsFiltered);
-
-
-        // set the limit to get the missing objects filtered
-        limitObjects -= objectsFiltered.length;
-        debug(`filtered ${limitObjects} element(s)`);
-        if (limitObjects <= 0) {
-          break;
-        }
-        const lastIndex = objToFilter.length - 1;
-        const lastOrderValue = _.get(objToFilter[lastIndex], keyOrder);
-        const lastOrderID = objToFilter[lastIndex][keyID];
-        // set the cursor to search AFTER the last found
-        queryParams.sinceIdExclusive = lastOrderID;
-        queryParams.keyOrderSince = lastOrderValue;
-        // get the new objects from the model list
-        objToFilter = await findWithLimit(limitObjects);
-
-        debug(`${objToFilter.length} element(s) to replace with filter`);
-        // while the limit has items to get and the found objects to fetch and filter
-        iterationCount += 1;
-      } while (limitObjects > 0 && objToFilter.length > 0);
-    } else {
-      // if there is no filter set objects found
-      objects = await findWithLimit(limit, page);
-    }
+    const objects = await findWithLimit(limitObjects, page);
 
     let nextCursor;
 
@@ -234,8 +181,8 @@ export default function globalSchema(schema, { name } = {}) {
 
       debug('find nextCursor with', { where: findNextWithSameOrder, select: keyID });
       const nextObject = await this
-          .findOne(findNextWithSameOrder, keyID)
-          .sort(sort).skip(1);
+        .findOne(findNextWithSameOrder, keyID)
+        .sort(sort).skip(1).lean();
 
 
       debug('found on nextObject', nextObject);
@@ -261,3 +208,4 @@ export default function globalSchema(schema, { name } = {}) {
   }
 }
 
+module.exports = globalSchema;

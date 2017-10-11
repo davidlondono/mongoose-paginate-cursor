@@ -1,12 +1,9 @@
-/**
- * Created by david on 9/22/16.
- */
-import mongoose, { Schema } from 'mongoose';
-import _debug from 'debug';
-import Pagination from './Pagination';
+const mongoose = require('mongoose');
+const _debug = require('debug');
+const Pagination = require('../src/Pagination');
 
-const debug = _debug('paginationCursor:connection');
-const error = _debug('paginationCursor:error');
+const debug = console.log;
+const error = console.error;
 mongoose.Promise = Promise; // ES6 Promise
 
 const db = mongoose.connection;
@@ -20,11 +17,11 @@ db.once('open', () => {
 mongoose.connect('mongodb://localhost/PageTest');
 
 const rand = () => Math.floor(Math.random() * 500);
-const FooSchema = new Schema({ count: { type: Number, default: rand } });
+const FooSchema = new mongoose.Schema({ count: { type: Number, default: rand } });
 FooSchema.plugin(Pagination);
 const Foo = mongoose.model('Foo', FooSchema);
 
-setInterval(async() => {
+setInterval(async () => {
   debug('will create new');
   try {
     const foo = await Foo.create({});
@@ -35,19 +32,24 @@ setInterval(async() => {
 }, 10000);
 
 let sinceId = null;
-process.stdin.on('data', async(text) => {
+const addValue = async (text) => {
   debug('input', text);
   try {
     const { nextCursor, objects } = await Foo.paginate({
       limit: 5,
       sinceId,
       reverse: false,
-      orderKey: 'count',
-      filter: () => (Math.random() > 0.1),
+      keyOrder: 'count',
     });
     sinceId = nextCursor;
     debug('paged', { objects, nextCursor });
   } catch (e) {
     error(e);
   }
+};
+setInterval(() => {
+  addValue('interval');
+}, 2000);
+process.stdin.on('data', async (text) => {
+  addValue(text);
 });
