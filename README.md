@@ -48,4 +48,8 @@ paged.nextCursor // the key value of the next cursor
 - [ ] Filter: *filter documents and search more to reach the limit*
 - [ ] beforeCursor: *cursor for before request*
 
+## Other notes
+
+If you're not using Mongoose and instead using Mongo directly, consider using the vanilla version of this module: [mongo-cursor-pagination](https://github.com/mixmaxhq/mongo-cursor-pagination).
+
 ### License: MIT
